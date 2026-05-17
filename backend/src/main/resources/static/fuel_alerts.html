@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Combustible y Alertas - Flota</title>
+  <style>
+    body { font-family: Arial, Helvetica, sans-serif; margin: 16px; }
+    .container { display:flex; gap:16px; }
+    .list { width: 280px; border:1px solid #ddd; padding:12px; border-radius:6px; }
+    .detail { flex:1; border:1px solid #ddd; padding:12px; border-radius:6px; }
+    .vehicle { padding:8px; border-bottom:1px solid #f0f0f0; cursor:pointer; }
+    .vehicle:hover{ background:#f9f9f9 }
+    .selected { background:#eef }
+    .badge { display:inline-block; padding:2px 8px; border-radius:12px; background:#eee; margin-left:8px }
+    h3 { margin-top:0 }
+    pre { background:#fafafa; padding:8px; border-radius:4px }
+  </style>
+</head>
+<body>
+  <h2>Combustible y Alertas — Flota</h2>
+  <div class="container">
+    <div class="list">
+      <h3>Vehículos</h3>
+      <div id="vehicles"></div>
+    </div>
+    <div class="detail">
+      <h3 id="title">Seleccione un vehículo</h3>
+      <div id="fuelPanel"><strong>Combustible:</strong>
+        <div id="fuelContent">—</div>
+      </div>
+      <hr />
+      <div id="alertsPanel"><strong>Alertas:</strong>
+        <div id="alertsContent">—</div>
+      </div>
+    </div>
+  </div>
+
+<script>
+const API_BASE = location.origin + '/api/fleet';
+let selectedVehicle = null;
+let vehiclesMap = {};
+
+async function loadVehicles(){
+  const res = await fetch(API_BASE + '/status');
+  const data = await res.json();
+  vehiclesMap = data || {};
+  const container = document.getElementById('vehicles');
+  container.innerHTML = '';
+  Object.keys(vehiclesMap).forEach(id => {
+    const v = document.createElement('div');
+    v.className = 'vehicle';
+    v.textContent = id + ' ';
+    const badge = document.createElement('span');
+    badge.className = 'badge';
+    const lat = vehiclesMap[id].latitud || vehiclesMap[id].latitude || '—';
+    const lon = vehiclesMap[id].longitud || vehiclesMap[id].longitude || '—';
+    badge.textContent = `GPS: ${lat}, ${lon}`;
+    v.appendChild(badge);
+    v.onclick = () => selectVehicle(id, v);
+    container.appendChild(v);
+  });
+}
+
+async function selectVehicle(id, elem){
+  selectedVehicle = id;
+  document.getElementById('title').textContent = 'Vehículo: ' + id;
+  // highlight
+  document.querySelectorAll('.vehicle').forEach(e=>e.classList.remove('selected'));
+  elem.classList.add('selected');
+  await loadFuel(id);
+  await loadAlerts(id);
+}
+
+async function loadFuel(id){
+  const fuelDiv = document.getElementById('fuelContent');
+  fuelDiv.textContent = 'Cargando...';
+  try{
+    const res = await fetch(API_BASE + '/vehicle/' + encodeURIComponent(id) + '/fuel');
+    if(res.status === 200){
+      const data = await res.json();
+      fuelDiv.innerHTML = `<div>Nivel: ${data.nivel ?? '—'} ${data.unidad ?? ''}</div><div>Sensor: ${data.sensor ?? '—'}</div>`;
+    } else {
+      fuelDiv.textContent = 'No hay datos de combustible';
+    }
+  } catch(e){
+    fuelDiv.textContent = 'Error al obtener combustible';
+  }
+}
+
+async function loadAlerts(id){
+  const alertsDiv = document.getElementById('alertsContent');
+  alertsDiv.textContent = 'Cargando...';
+  try{
+    const res = await fetch(API_BASE + '/vehicle/' + encodeURIComponent(id) + '/alerts');
+    if(res.status === 200){
+      const data = await res.json();
+      if(!data || data.length===0){
+        alertsDiv.textContent = 'Sin alertas recientes';
+        return;
+      }
+      alertsDiv.innerHTML = '';
+      data.slice().reverse().slice(0,10).forEach(a => {
+        const p = document.createElement('div');
+        p.style.padding='6px 0';
+        p.innerHTML = `<div><strong>${a.sensor ?? 'sensor'}</strong> — valor: ${a.valor ?? ''} ${a.unidad ?? ''}</div><pre>${JSON.stringify(a, null, 2)}</pre>`;
+        alertsDiv.appendChild(p);
+      });
+    } else {
+      alertsDiv.textContent = 'No hay datos de alertas';
+    }
+  } catch(e){
+    alertsDiv.textContent = 'Error al obtener alertas';
+  }
+}
+
+// inicializar
+loadVehicles();
+</script>
+</body>
+</html>

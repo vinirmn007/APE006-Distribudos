@@ -9,6 +9,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.Map;
+import java.util.List;
+import fleet.dto.FuelTelemetry;
+import fleet.dto.AlertTelemetry;
 
 @RestController
 @RequestMapping("/api/fleet")
@@ -30,5 +33,17 @@ public class FleetController {
         return fleetService.getVehicleTelemetry(id)
                 .map(ResponseEntity::ok)
                 .orElseGet(() -> ResponseEntity.notFound().build());
+    }
+
+    @GetMapping("/vehicle/{id}/fuel")
+    public ResponseEntity<FuelTelemetry> getVehicleFuel(@PathVariable("id") String id) {
+        return fleetService.getVehicleFuel(id)
+                .map(ResponseEntity::ok)
+                .orElseGet(() -> ResponseEntity.notFound().build());
+    }
+
+    @GetMapping("/vehicle/{id}/alerts")
+    public ResponseEntity<List<AlertTelemetry>> getVehicleAlerts(@PathVariable("id") String id) {
+        return ResponseEntity.ok(fleetService.getVehicleAlerts(id));
     }
 }

@@ -265,7 +265,7 @@
         <div>
           <div class="eyebrow">Fleet monitoring</div>
           <h1 class="title">Dashboard de flota en tiempo real</h1>
-          <p class="subtitle">Lee el estado general desde la API de Spring Boot, consulta la telemetría de cada vehículo y dibuja los marcadores en un mapa con Leaflet.</p>
+          <p class="subtitle">consulta la telemetría de cada vehículo </p>
         </div>
         <div class="status-chip">
           <span class="loading-dot"></span>
@@ -275,32 +275,21 @@
     </div>
 
     <div class="row g-3 mb-4">
-      <div class="col-12 col-md-6 col-xl-3">
-        <div class="metric-card">
-          <div class="metric-label">Vehículos totales</div>
-          <div class="metric-value" id="vehicleCount">0</div>
-          <div class="metric-note">Vehículos con telemetría disponible en <code>/api/fleet/status</code>.</div>
-        </div>
-      </div>
-      <div class="col-12 col-md-6 col-xl-3">
-        <div class="metric-card">
-          <div class="metric-label">Alertas activas</div>
-          <div class="metric-value" id="alertCount">0</div>
-          <div class="metric-note">El backend actual no expone alertas activas; el panel queda listo para cuando exista ese dato.</div>
-        </div>
-      </div>
-      <div class="col-12 col-md-6 col-xl-3">
-        <div class="metric-card">
-          <div class="metric-label">API base</div>
-          <div class="metric-value" style="font-size:1.1rem;" id="apiBaseLabel">auto</div>
-          <div class="metric-note">Consume la misma origin si el frontend se sirve desde Spring Boot.</div>
-        </div>
-      </div>
-      <div class="col-12 col-md-6 col-xl-3">
-        <div class="metric-card">
-          <div class="metric-label">Última consulta</div>
-          <div class="metric-value" style="font-size:1.1rem;" id="lastFetchLabel">-</div>
-          <div class="metric-note">Refresco automático cada 3 segundos.</div>
+      <div class="col-12">
+        <div class="metric-card d-flex flex-wrap justify-content-between align-items-center gap-3">
+          <div>
+            <div class="metric-label mb-1">Accesos rápidos</div>
+            <div class="section-note">Entra directo a las otras vistas sin llenar el inicio con cuadros extra.</div>
+          </div>
+          <div class="d-flex flex-column flex-sm-row align-items-sm-center gap-3">
+            <div class="section-note text-sm-end">
+              Vehículos: <strong id="vehicleCount">0</strong> · Última consulta: <strong id="lastFetchLabel">-</strong>
+            </div>
+            <div class="d-flex flex-wrap gap-2">
+              <a href="/dashboard.html" class="btn btn-outline-light">Abrir Dashboard</a>
+              <a href="/fuel_alerts.html" class="btn btn-outline-light">Combustible y Alertas</a>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -340,7 +329,10 @@
       ? window.location.origin
       : 'http://localhost:8080');
 
-    document.getElementById('apiBaseLabel').textContent = API_BASE;
+    const apiBaseLabel = document.getElementById('apiBaseLabel');
+    if (apiBaseLabel) {
+      apiBaseLabel.textContent = API_BASE;
+    }
 
     const carIcon = L.divIcon({
       className: '',
@@ -388,7 +380,6 @@
       const lastFetchLabel = document.getElementById('lastFetchLabel');
       const vehicleList = document.getElementById('vehicleList');
       const vehicleCount = document.getElementById('vehicleCount');
-      const alertCount = document.getElementById('alertCount');
       const vehicleMeta = document.getElementById('vehicleMeta');
       const mapHint = document.getElementById('mapHint');
 
@@ -399,7 +390,6 @@
         const vehicleIds = Object.keys(statusData || {});
 
         vehicleCount.textContent = vehicleIds.length.toString();
-        alertCount.textContent = '0';
         vehicleMeta.textContent = `${vehicleIds.length} registros`;
         lastFetchLabel.textContent = formatTime();
 

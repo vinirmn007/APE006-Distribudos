@@ -2,7 +2,6 @@ import json
 import random
 
 def publish_temperatura(client, auto_id, placa, estado):
-    # Actualizar estado
     estado["temperatura"] = round(random.uniform(85.0, 105.0), 2)
 
     payload_temperatura = json.dumps({

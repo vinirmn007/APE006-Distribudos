@@ -1,7 +1,6 @@
 import json
 
 def publish_combustible(client, auto_id, placa, estado):
-    # Actualizar estado
     estado["combustible"] = max(0, estado["combustible"] - 0.5)
 
     payload_combustible = json.dumps({

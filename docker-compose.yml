@@ -49,5 +49,24 @@ services:
       - mosquitto
     restart: always
 
+  rabbitmq:
+    image: rabbitmq:3-management
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    restart: always
+
+  servicio_puente:
+    build:
+      context: ./ServicioPuente
+      dockerfile: Dockerfile
+    environment:
+      - MQTT_BROKER=mosquitto
+      - RABBITMQ_HOST=rabbitmq
+    depends_on:
+      - mosquitto
+      - rabbitmq
+    restart: always
+
 volumes:
   mariadb_data:

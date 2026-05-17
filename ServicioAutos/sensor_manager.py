@@ -47,7 +47,7 @@ def simulate_sensors():
                 placa = auto.placa
                 if placa not in estado_vehiculos:
                     estado_vehiculos[placa] = {
-                        "latitud": random.uniform(-4.0, -3.9), # Loja aprox
+                        "latitud": random.uniform(-4.0, -3.9),
                         "longitud": random.uniform(-79.3, -79.1),
                         "combustible": 100.0,
                         "temperatura": 90.0

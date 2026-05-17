@@ -2,7 +2,6 @@ import json
 import random
 
 def publish_gps(client, auto_id, placa, estado):
-    # Actualizar estado
     estado["latitud"] += random.uniform(-0.0001, 0.0001)
     estado["longitud"] += random.uniform(-0.0001, 0.0001)
 

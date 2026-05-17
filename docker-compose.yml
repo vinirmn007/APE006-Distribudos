@@ -29,12 +29,14 @@ services:
 
     restart: "no"
 
-  rabbitmq:
-    image: rabbitmq:3-management
+  mosquitto:
+    image: eclipse-mosquitto:2
+    container_name: mosquitto
     ports:
-      - "5672:5672"
-      - "15672:15672"
-    restart: always
+      - "1883:1883"
+    volumes:
+      - ./mosquitto/mosquitto.conf:/mosquitto/config/mosquitto.conf
+    restart: unless-stopped
 
   servicio_puente:
     build:
@@ -43,10 +45,60 @@ services:
     environment:
       - MQTT_BROKER=mosquitto
       - RABBITMQ_HOST=rabbitmq
+      - RABBITMQ_USER=admin
+      - RABBITMQ_PASSWORD=admin
     depends_on:
       - mosquitto
       - rabbitmq
     restart: always
+
+  mariadb:
+    image: mariadb:latest
+    container_name: mariadb
+    ports:
+      - "3306:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: autos_db
+      MYSQL_USER: root
+      MYSQL_PASSWORD: root
+    volumes:
+      - mariadb_data:/var/lib/mysql
+    restart: unless-stopped
+
+  servicio_autos:
+    build:
+      context: ./ServicioAutos
+      dockerfile: Dockerfile
+    container_name: servicio_autos
+    ports:
+      - "8000:8000"
+    environment:
+      DB_USER: root
+      DB_PASSWORD: root
+      DB_HOST: mariadb
+      DB_NAME: autos_db
+    depends_on:
+      - mariadb
+    restart: unless-stopped
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: fleet-backend
+    ports:
+      - "8080:8080"
+    environment:
+      RABBITMQ_HOST: rabbitmq
+      RABBITMQ_PORT: 5672
+      RABBITMQ_USER: admin
+      RABBITMQ_PASSWORD: admin
+    depends_on:
+      - rabbitmq
+      - rabbitmq-setup
+      - mariadb
+    restart: unless-stopped
 
 volumes:
   mariadb_data:

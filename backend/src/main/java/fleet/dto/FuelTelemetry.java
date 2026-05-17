@@ -1,4 +1,4 @@
-package main.java.fleet.dto;
+package fleet.dto;
 
 public class FuelTelemetry {
 

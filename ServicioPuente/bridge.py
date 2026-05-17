@@ -9,6 +9,8 @@ MQTT_PORT = int(os.getenv("MQTT_PORT", 1883))
 MQTT_TOPIC = os.getenv("MQTT_TOPIC", "#") 
 
 RABBITMQ_HOST = os.getenv("RABBITMQ_HOST", "rabbitmq")
+RABBITMQ_USER = os.getenv("RABBITMQ_USER", "admin")
+RABBITMQ_PASSWORD = os.getenv("RABBITMQ_PASSWORD", "admin")
 RABBITMQ_QUEUE = os.getenv("RABBITMQ_QUEUE", "telemetria_queue")
 
 rabbitmq_connection = None
@@ -18,7 +20,10 @@ def init_rabbitmq():
     global rabbitmq_connection, rabbitmq_channel
     while True:
         try:
-            rabbitmq_connection = pika.BlockingConnection(pika.ConnectionParameters(host=RABBITMQ_HOST))
+            credentials = pika.PlainCredentials(RABBITMQ_USER, RABBITMQ_PASSWORD)
+            rabbitmq_connection = pika.BlockingConnection(
+                pika.ConnectionParameters(host=RABBITMQ_HOST, credentials=credentials)
+            )
             rabbitmq_channel = rabbitmq_connection.channel()
             rabbitmq_channel.queue_declare(queue=RABBITMQ_QUEUE, durable=True)
             print(f"conectado a RabbitMQ en {RABBITMQ_HOST}")
@@ -45,11 +50,18 @@ def on_message(client, userdata, msg):
             data = json.loads(payload)
         except json.JSONDecodeError:
             data = payload
-
-        mensaje_rmq = {
-            "topic": topic,
-            "data": data
-        }
+#NOSE ENOJEN CAMBIE ETO PARA QUE SE VEA MEJOR EN RABBITMQ, SI NO SE PIERDE EL FORMATO JSON Y NO SE PUEDE LEER BIEN EN LOS CONSUMIDORES
+        # Determinar routing key basado en el tópico
+        # Ejemplo: flota/1/gps -> gps.telemetry
+        routing_key = RABBITMQ_QUEUE  # Default
+        if "gps" in topic.lower():
+            routing_key = "gps.telemetry"
+        elif "combustible" in topic.lower() or "fuel" in topic.lower():
+            routing_key = "fuel.level"
+        elif "temperatura" in topic.lower() or "temp" in topic.lower():
+            routing_key = "fuel.level"  # Puede variar según necesidad
+        elif "alerta" in topic.lower() or "alert" in topic.lower():
+            routing_key = "alert.critical"
 
         # Check connection and reconnect if necessary
         if rabbitmq_connection is None or rabbitmq_connection.is_closed:
@@ -57,13 +69,13 @@ def on_message(client, userdata, msg):
 
         rabbitmq_channel.basic_publish(
             exchange='exchange.fleet',
-            routing_key=RABBITMQ_QUEUE,
-            body=json.dumps(mensaje_rmq),
+            routing_key=routing_key,
+            body=json.dumps(data),
             properties=pika.BasicProperties(
                 delivery_mode=2,  # Delivery mode 2 para hacer el mensaje persistente (no se pierda)
             )
         )
-        print(f"Enviado a la cola de RabbitMQ '{RABBITMQ_QUEUE}' con delivery_mode=2")
+        print(f"Enviado a RabbitMQ con routing_key='{routing_key}'")
 
     except Exception as e:
         print(f"Error al procesar el mensaje: {e}")

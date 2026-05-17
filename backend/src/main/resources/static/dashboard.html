@@ -1,0 +1,553 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dashboard Vehículos</title>
+
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" rel="stylesheet">
+
+  <style>
+    :root {
+      --bg: #0b1220;
+      --panel: rgba(15, 23, 42, 0.88);
+      --border: rgba(148, 163, 184, 0.18);
+      --text: #e5eefb;
+      --muted: #94a3b8;
+      --accent: #38bdf8;
+      --accent-2: #22c55e;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      min-height: 100vh;
+      margin: 0;
+      color: var(--text);
+      background:
+        radial-gradient(circle at top left, rgba(56, 189, 248, 0.14), transparent 28%),
+        radial-gradient(circle at top right, rgba(34, 197, 94, 0.12), transparent 24%),
+        linear-gradient(180deg, #0b1220 0%, #0f172a 100%);
+    }
+
+    .page-shell { padding: 24px; }
+
+    .hero,
+    .glass-panel {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 22px;
+      box-shadow: 0 20px 45px rgba(0, 0, 0, 0.22);
+      overflow: hidden;
+    }
+
+    .hero {
+      padding: 24px;
+      margin-bottom: 24px;
+    }
+
+    .eyebrow {
+      text-transform: uppercase;
+      letter-spacing: 0.14em;
+      font-weight: 800;
+      color: var(--accent);
+      font-size: 0.74rem;
+    }
+
+    .hero h1 {
+      font-size: clamp(2rem, 4vw, 3.2rem);
+      font-weight: 800;
+      margin: 8px 0 10px;
+      line-height: 1.02;
+    }
+
+    .hero p {
+      margin: 0;
+      color: var(--muted);
+      max-width: 900px;
+    }
+
+    .status-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 14px;
+      border-radius: 999px;
+      background: rgba(56, 189, 248, 0.12);
+      border: 1px solid rgba(56, 189, 248, 0.2);
+      color: #dbefff;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+
+    .status-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: var(--accent-2);
+      box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.4);
+      animation: pulse 1.5s infinite;
+    }
+
+    @keyframes pulse {
+      0% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.4); }
+      70% { box-shadow: 0 0 0 12px rgba(34, 197, 94, 0); }
+      100% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0); }
+    }
+
+    .panel-header {
+      padding: 18px 20px;
+      border-bottom: 1px solid rgba(148, 163, 184, 0.14);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .panel-header h2 {
+      margin: 0;
+      font-size: 1.05rem;
+      font-weight: 700;
+    }
+
+    .panel-body { padding: 20px; }
+
+    .metric {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(148, 163, 184, 0.14);
+      border-radius: 18px;
+      padding: 16px;
+      height: 100%;
+    }
+
+    .metric-label {
+      color: var(--muted);
+      font-size: 0.86rem;
+      margin-bottom: 6px;
+    }
+
+    .metric-value {
+      font-size: 2rem;
+      font-weight: 800;
+      line-height: 1;
+    }
+
+    .table-darkish {
+      --bs-table-bg: transparent;
+      --bs-table-color: var(--text);
+      --bs-table-striped-bg: rgba(255, 255, 255, 0.03);
+      --bs-table-striped-color: var(--text);
+      --bs-table-hover-bg: rgba(56, 189, 248, 0.08);
+      --bs-table-hover-color: var(--text);
+      margin-bottom: 0;
+    }
+
+    .badge-soft {
+      border-radius: 999px;
+      padding: 7px 10px;
+      background: rgba(59, 130, 246, 0.12);
+      color: #d9eeff;
+      font-size: 0.78rem;
+      font-weight: 600;
+    }
+
+    .telemetry-detail {
+      padding: 16px;
+      border-radius: 18px;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(148, 163, 184, 0.14);
+    }
+
+    .telemetry-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+      margin-top: 12px;
+    }
+
+    .telemetry-item {
+      padding: 12px;
+      border-radius: 14px;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(148, 163, 184, 0.12);
+    }
+
+    .telemetry-label {
+      display: block;
+      color: var(--muted);
+      font-size: 0.8rem;
+      margin-bottom: 4px;
+    }
+
+    .telemetry-value {
+      font-weight: 700;
+      word-break: break-word;
+    }
+
+    .vehicle-row-button {
+      width: 100%;
+      display: grid;
+      grid-template-columns: 1.1fr 1.3fr 1fr 0.7fr;
+      gap: 12px;
+      padding: 14px 16px;
+      border: 0;
+      background: transparent;
+      color: inherit;
+      text-align: left;
+      cursor: pointer;
+    }
+
+    .vehicle-row-button:hover,
+    .vehicle-row-button.active {
+      background: rgba(56, 189, 248, 0.08);
+    }
+
+    .vehicle-row-button:focus-visible {
+      outline: 2px solid rgba(56, 189, 248, 0.75);
+      outline-offset: -2px;
+    }
+
+    .section-note {
+      color: var(--muted);
+      font-size: 0.92rem;
+    }
+
+    @media (max-width: 575px) {
+      .page-shell { padding: 12px; }
+      .hero,
+      .glass-panel { border-radius: 18px; }
+      .panel-body { padding: 16px; }
+      .vehicle-row-button { grid-template-columns: 1fr; }
+      .telemetry-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <main class="page-shell container-fluid">
+    <section class="hero">
+      <div class="d-flex flex-wrap justify-content-between align-items-start gap-3">
+        <div>
+          <div class="eyebrow">Fleet dashboard</div>
+          <h1>Registro y monitoreo de vehículos</h1>
+          <p>Usa la lista de vehículos para abrir su telemetría GPS y registrar nuevos autos desde el mismo panel.</p>
+        </div>
+        <div class="status-pill">
+          <span class="status-dot"></span>
+          <span id="lastRefresh">Listo</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="row g-4 mb-4">
+      <div class="col-12 col-md-4">
+        <div class="metric">
+          <div class="metric-label">Vehículos registrados</div>
+          <div class="metric-value" id="vehicleCount">0</div>
+        </div>
+      </div>
+      <div class="col-12 col-md-4">
+        <div class="metric">
+          <div class="metric-label">Endpoint activo</div>
+          <div class="metric-value" style="font-size:1.05rem;" id="apiBaseLabel">auto</div>
+        </div>
+      </div>
+      <div class="col-12 col-md-4">
+        <div class="metric">
+          <div class="metric-label">Última actualización</div>
+          <div class="metric-value" style="font-size:1.05rem;" id="updatedAt">-</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="row g-4">
+      <div class="col-12 col-xl-4">
+        <div class="glass-panel h-100">
+          <div class="panel-header">
+            <h2>Crear vehículo</h2>
+            <span class="badge-soft">POST /autos/</span>
+          </div>
+          <div class="panel-body">
+            <form id="vehicleForm" class="vstack gap-3">
+              <div>
+                <label for="plate" class="form-label">Placa</label>
+                <input type="text" class="form-control form-control-lg" id="plate" name="placa" placeholder="Ej: ABC-1234" required>
+              </div>
+              <div>
+                <label for="model" class="form-label">Modelo</label>
+                <input type="text" class="form-control form-control-lg" id="model" name="modelo" placeholder="Ej: Hyundai Tucson" required>
+              </div>
+              <div>
+                <label for="color" class="form-label">Color</label>
+                <input type="text" class="form-control form-control-lg" id="color" name="color" placeholder="Ej: Blanco" required>
+              </div>
+              <div>
+                <label for="year" class="form-label">Año</label>
+                <input type="number" class="form-control form-control-lg" id="year" name="anio" placeholder="Ej: 2023" required>
+              </div>
+
+              <div id="formAlert" class="alert d-none mb-0" role="alert"></div>
+
+              <button type="submit" class="btn btn-primary btn-lg fw-semibold">
+                <i class="fa-solid fa-circle-plus me-2"></i>Registrar
+              </button>
+            </form>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-12 col-xl-4">
+        <div class="glass-panel h-100">
+          <div class="panel-header">
+            <h2>Vehículos detectados</h2>
+            <span class="badge-soft" id="tableBadge">0 autos</span>
+          </div>
+          <div class="panel-body">
+            <div class="table-responsive">
+              <table class="table table-darkish table-striped table-hover align-middle">
+                <thead>
+                  <tr>
+                    <th>Placa</th>
+                    <th>Modelo</th>
+                    <th>Color</th>
+                    <th>Año</th>
+                  </tr>
+                </thead>
+                <tbody id="vehiclesTableBody">
+                  <tr>
+                    <td colspan="4" class="text-center text-muted py-4">No hay vehículos registrados.</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-12 col-xl-4">
+        <div class="glass-panel h-100">
+          <div class="panel-header">
+            <h2>Telemetría del vehículo</h2>
+            <span class="badge-soft" id="telemetryBadge">Selecciona uno</span>
+          </div>
+          <div class="panel-body">
+            <div id="telemetryDetail" class="telemetry-detail">
+              <div class="text-muted">Haz clic en un vehículo para ver sus datos GPS.</div>
+            </div>
+            <div class="section-note mt-3">Aquí se muestran los datos que llegan por telemetría GPS.</div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    const API_AUTOS = 'http://localhost:8000/autos/';
+    const FLEET_API_BASE = window.location.origin && window.location.origin.startsWith('http')
+      ? window.location.origin
+      : 'http://localhost:8080';
+
+    const vehiclesTableBody = document.getElementById('vehiclesTableBody');
+    const vehicleCount = document.getElementById('vehicleCount');
+    const tableBadge = document.getElementById('tableBadge');
+    const telemetryBadge = document.getElementById('telemetryBadge');
+    const telemetryDetail = document.getElementById('telemetryDetail');
+    const lastRefresh = document.getElementById('lastRefresh');
+    const updatedAt = document.getElementById('updatedAt');
+    const formAlert = document.getElementById('formAlert');
+    const vehicleForm = document.getElementById('vehicleForm');
+
+    const telemetryCache = new Map();
+    let selectedVehicleId = null;
+
+    function showAlert(message, type = 'success') {
+      formAlert.className = `alert alert-${type}`;
+      formAlert.textContent = message;
+      formAlert.classList.remove('d-none');
+    }
+
+    function hideAlert() {
+      formAlert.classList.add('d-none');
+      formAlert.textContent = '';
+    }
+
+    function escapeHtml(value) {
+      return String(value ?? '')
+        .replaceAll('&', '&amp;')
+        .replaceAll('<', '&lt;')
+        .replaceAll('>', '&gt;')
+        .replaceAll('"', '&quot;')
+        .replaceAll("'", '&#39;');
+    }
+
+    function renderTable(vehicles) {
+      if (vehicles.length === 0) {
+        vehiclesTableBody.innerHTML = '<tr><td colspan="4" class="text-center text-muted py-4">No hay vehículos registrados.</td></tr>';
+        return;
+      }
+
+      vehiclesTableBody.innerHTML = vehicles.map((vehicle) => `
+        <tr>
+          <td colspan="4" class="p-0">
+            <button type="button" class="vehicle-row-button" data-vehicle-id="${escapeHtml(vehicle.placa ?? '')}">
+              <span>${escapeHtml(vehicle.placa ?? '')}</span>
+              <span>${escapeHtml(vehicle.modelo ?? '')}</span>
+              <span>${escapeHtml(vehicle.color ?? '')}</span>
+              <span>${escapeHtml(vehicle.anio ?? '')}</span>
+            </button>
+          </td>
+        </tr>
+      `).join('');
+
+      vehiclesTableBody.querySelectorAll('[data-vehicle-id]').forEach((button) => {
+        button.addEventListener('click', () => {
+          showVehicleTelemetry(button.getAttribute('data-vehicle-id'));
+        });
+      });
+    }
+
+    function renderTelemetryDetail(vehicleId, telemetry, error = null) {
+      if (!telemetry) {
+        telemetryBadge.textContent = 'Sin datos';
+        telemetryDetail.innerHTML = '<div class="text-muted">No hay telemetría disponible para este vehículo.</div>';
+        return;
+      }
+
+      telemetryBadge.textContent = vehicleId;
+      telemetryDetail.innerHTML = `
+        <div class="d-flex flex-wrap justify-content-between align-items-center gap-2">
+          <div>
+            <div class="fw-bold fs-5">${escapeHtml(vehicleId)}</div>
+            <div class="text-muted">Datos GPS actuales</div>
+          </div>
+          <span class="badge-soft">${error ? 'Con cache' : 'En vivo'}</span>
+        </div>
+        <div class="telemetry-grid">
+          <div class="telemetry-item">
+            <span class="telemetry-label">Sensor</span>
+            <div class="telemetry-value">${escapeHtml(telemetry.sensor ?? 'gps')}</div>
+          </div>
+          <div class="telemetry-item">
+            <span class="telemetry-label">Placa</span>
+            <div class="telemetry-value">${escapeHtml(telemetry.placa ?? vehicleId)}</div>
+          </div>
+          <div class="telemetry-item">
+            <span class="telemetry-label">Latitud</span>
+            <div class="telemetry-value">${escapeHtml(telemetry.latitud ?? 'N/D')}</div>
+          </div>
+          <div class="telemetry-item">
+            <span class="telemetry-label">Longitud</span>
+            <div class="telemetry-value">${escapeHtml(telemetry.longitud ?? 'N/D')}</div>
+          </div>
+        </div>
+        ${error ? '<div class="alert alert-warning mt-3 mb-0">Se usó la telemetría cacheada porque el endpoint respondió con error.</div>' : ''}
+      `;
+    }
+
+    async function showVehicleTelemetry(vehicleId) {
+      selectedVehicleId = vehicleId;
+
+      vehiclesTableBody.querySelectorAll('[data-vehicle-id]').forEach((button) => {
+        button.classList.toggle('active', button.getAttribute('data-vehicle-id') === vehicleId);
+      });
+
+      telemetryBadge.textContent = 'Cargando...';
+      telemetryDetail.innerHTML = '<div class="text-muted">Consultando telemetría...</div>';
+
+      if (telemetryCache.has(vehicleId)) {
+        const cached = telemetryCache.get(vehicleId);
+        renderTelemetryDetail(vehicleId, cached.telemetry, cached.error);
+        return;
+      }
+
+      try {
+        const response = await fetch(`${FLEET_API_BASE}/api/fleet/vehicle/${encodeURIComponent(vehicleId)}/telemetria`, {
+          headers: { 'Accept': 'application/json' }
+        });
+
+        if (!response.ok) {
+          throw new Error(`Error ${response.status} al consultar la telemetría`);
+        }
+
+        const telemetry = await response.json();
+        telemetryCache.set(vehicleId, { telemetry, error: null });
+        renderTelemetryDetail(vehicleId, telemetry);
+      } catch (error) {
+        telemetryCache.set(vehicleId, { telemetry: null, error });
+        telemetryBadge.textContent = 'Error';
+        telemetryDetail.innerHTML = `<div class="text-danger">No se pudo cargar la telemetría: ${escapeHtml(error.message)}</div>`;
+      }
+    }
+
+    async function loadVehicles() {
+      try {
+        lastRefresh.textContent = 'Consultando API...';
+        const response = await fetch(API_AUTOS, {
+          headers: { 'Accept': 'application/json' }
+        });
+
+        if (!response.ok) {
+          throw new Error(`Error ${response.status} al consultar vehículos`);
+        }
+
+        const vehicles = await response.json();
+
+        vehicleCount.textContent = vehicles.length;
+        tableBadge.textContent = `${vehicles.length} autos`;
+        renderTable(vehicles);
+
+        updatedAt.textContent = new Date().toLocaleString('es-EC', { hour12: false });
+        lastRefresh.textContent = 'Actualizado';
+
+        if (selectedVehicleId && vehicles.some((vehicle) => vehicle.placa === selectedVehicleId)) {
+          await showVehicleTelemetry(selectedVehicleId);
+        }
+      } catch (error) {
+        lastRefresh.textContent = 'Error al consultar';
+        console.error(error);
+        showAlert(`No se pudo conectar con el servicio de autos: ${error.message}`, 'danger');
+      }
+    }
+
+    vehicleForm.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      hideAlert();
+
+      const payload = {
+        placa: document.getElementById('plate').value.trim(),
+        modelo: document.getElementById('model').value.trim(),
+        color: document.getElementById('color').value.trim(),
+        anio: parseInt(document.getElementById('year').value.trim(), 10)
+      };
+
+      try {
+        const response = await fetch(API_AUTOS, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+          },
+          body: JSON.stringify(payload)
+        });
+
+        if (!response.ok) {
+          const text = await response.text();
+          throw new Error(text || `Error ${response.status} al registrar vehículo`);
+        }
+
+        vehicleForm.reset();
+        showAlert('Vehículo registrado correctamente.', 'success');
+        await loadVehicles();
+      } catch (error) {
+        console.error(error);
+        showAlert(error.message, 'danger');
+      }
+    });
+
+    loadVehicles();
+    setInterval(loadVehicles, 5000);
+  </script>
+</body>
+</html>

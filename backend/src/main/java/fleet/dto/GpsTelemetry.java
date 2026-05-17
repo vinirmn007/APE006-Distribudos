@@ -48,4 +48,5 @@ public class GpsTelemetry {
                 ", longitud=" + longitud +
                 '}';
     }
+    
 }

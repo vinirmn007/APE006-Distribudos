@@ -343,9 +343,9 @@
     });
 
     const map = L.map('map', { zoomControl: true }).setView([-3.99, -79.21], 12);
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png', {
       maxZoom: 19,
-      attribution: '&copy; OpenStreetMap contributors'
+      attribution: '&copy; OpenStreetMap contributors, &copy; CARTO'
     }).addTo(map);
 
     const markersByVehicle = new Map();
@@ -423,7 +423,7 @@
 
         if (validTelemetry.length > 0) {
           const bounds = L.latLngBounds(validTelemetry.map(({ telemetry }) => [Number(telemetry.latitud), Number(telemetry.longitud)]));
-          map.fitBounds(bounds.pad(0.22));
+          map.fitBounds(bounds.pad(0.22), { maxZoom: 16 });
         }
 
         lastUpdated.textContent = 'Actualizado';

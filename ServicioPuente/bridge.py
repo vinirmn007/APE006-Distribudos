@@ -59,7 +59,7 @@ def on_message(client, userdata, msg):
         elif "combustible" in topic.lower() or "fuel" in topic.lower():
             routing_key = "fuel.level"
         elif "temperatura" in topic.lower() or "temp" in topic.lower():
-            routing_key = "fuel.level"  # Puede variar según necesidad
+            routing_key = "alert.critical"
         elif "alerta" in topic.lower() or "alert" in topic.lower():
             routing_key = "alert.critical"
 

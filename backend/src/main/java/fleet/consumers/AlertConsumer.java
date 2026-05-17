@@ -14,7 +14,7 @@ public class AlertConsumer {
         this.fleetService = fleetService;
     }
 
-    @RabbitListener(queues = "alerts_queue")
+    @RabbitListener(queues = {"alerts_queue", "notifications_queue"})
     public void consumeMessage(AlertTelemetry alertTelemetry) {
         System.out.println("Received message from alerts_queue: " + alertTelemetry);
         try {

@@ -41,35 +41,68 @@ const API_BASE = location.origin + '/api/fleet';
 let selectedVehicle = null;
 let vehiclesMap = {};
 
+const API_AUTOS = 'http://localhost:8000/autos/';
+
 async function loadVehicles(){
-  const res = await fetch(API_BASE + '/status');
-  const data = await res.json();
-  vehiclesMap = data || {};
+  let statusData = {};
+  try {
+    const resStatus = await fetch(API_BASE + '/status');
+    statusData = await resStatus.json();
+  } catch(e) {}
+
+  let vehicles = [];
+  try {
+    const resAutos = await fetch(API_AUTOS);
+    vehicles = await resAutos.json();
+  } catch(e) {
+    vehicles = Object.keys(statusData).map(id => ({placa: id}));
+  }
+
   const container = document.getElementById('vehicles');
   container.innerHTML = '';
-  Object.keys(vehiclesMap).forEach(id => {
+
+  vehicles.forEach(auto => {
+    const id = auto.placa;
     const v = document.createElement('div');
     v.className = 'vehicle';
+    if (id === selectedVehicle) {
+      v.classList.add('selected');
+    }
     v.textContent = id + ' ';
     const badge = document.createElement('span');
     badge.className = 'badge';
-    const lat = vehiclesMap[id].latitud || vehiclesMap[id].latitude || '—';
-    const lon = vehiclesMap[id].longitud || vehiclesMap[id].longitude || '—';
-    badge.textContent = `GPS: ${lat}, ${lon}`;
+    
+    const telemetry = statusData[id];
+    if (telemetry) {
+      const lat = telemetry.latitud || telemetry.latitude || '—';
+      const lon = telemetry.longitud || telemetry.longitude || '—';
+      badge.textContent = `GPS: ${lat}, ${lon}`;
+    } else {
+      badge.textContent = `Sin GPS`;
+    }
+    
     v.appendChild(badge);
     v.onclick = () => selectVehicle(id, v);
     container.appendChild(v);
   });
 }
 
+let refreshInterval = null;
+
 async function selectVehicle(id, elem){
   selectedVehicle = id;
   document.getElementById('title').textContent = 'Vehículo: ' + id;
   // highlight
   document.querySelectorAll('.vehicle').forEach(e=>e.classList.remove('selected'));
-  elem.classList.add('selected');
+  if(elem) elem.classList.add('selected');
   await loadFuel(id);
   await loadAlerts(id);
+
+  if (refreshInterval) clearInterval(refreshInterval);
+  refreshInterval = setInterval(() => {
+    loadFuel(id);
+    loadAlerts(id);
+  }, 3000);
 }
 
 async function loadFuel(id){
@@ -116,6 +149,7 @@ async function loadAlerts(id){
 
 // inicializar
 loadVehicles();
+setInterval(loadVehicles, 5000);
 </script>
 </body>
 </html>
